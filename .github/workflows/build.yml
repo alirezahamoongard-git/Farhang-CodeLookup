@@ -3,7 +3,8 @@ name: Build Farhang APK
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
@@ -13,22 +14,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check ZIP
+        run: |
+          ls -lah
+          unzip -l Farhang_CodeLookup_ReadyToBuild.zip | head -40
+
       - name: Extract project
         run: |
+          rm -rf extracted
+          mkdir extracted
           unzip -q Farhang_CodeLookup_ReadyToBuild.zip -d extracted
+          echo "Extracted files:"
+          find extracted -maxdepth 3 -type f | sort
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK
+      - name: Install Android SDK packages
         run: |
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -37,10 +48,12 @@ jobs:
 
       - name: Build APK
         working-directory: extracted/farhang
-        run: gradle --no-daemon :app:assembleDebug
+        run: |
+          gradle --no-daemon --stacktrace :app:assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Farhang-CodeLookup-APK
           path: extracted/farhang/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
