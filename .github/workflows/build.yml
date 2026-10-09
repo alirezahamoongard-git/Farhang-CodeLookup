@@ -116,4 +116,3 @@ jobs:
           name: Farhang-CodeLookup-Release-Signed
           path: extracted/farhang/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
-```
