@@ -32,7 +32,7 @@ jobs:
           yes | "$SDKMANAGER" --licenses || true
           "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-            - name: Restore signing key
+      - name: Restore signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
@@ -88,6 +88,7 @@ jobs:
                       signingConfig = signingConfigs.getByName("release")
                   }
               }
+          }
           '''
 
           if s.count(needle) != 1:
@@ -115,3 +116,4 @@ jobs:
           name: Farhang-CodeLookup-Release-Signed
           path: extracted/farhang/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
+```
