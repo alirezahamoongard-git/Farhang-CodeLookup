@@ -32,13 +32,37 @@ jobs:
           yes | "$SDKMANAGER" --licenses || true
           "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Restore signing key
+            - name: Restore signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          test -n "$KEYSTORE_BASE64"
-          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > extracted/farhang/farhang-release-key.jks
-          chmod 600 extracted/farhang/farhang-release-key.jks
+          python3 - <<'PY'
+          import os
+          import base64
+          import re
+          import sys
+
+          value = os.environ.get("KEYSTORE_BASE64", "")
+          value = re.sub(r"\s+", "", value)
+
+          print("Secret present:", bool(value))
+          print("Encoded length:", len(value))
+          print("Length remainder:", len(value) % 4)
+          print("Invalid characters:", len(re.sub(r"[A-Za-z0-9+/=]", "", value)))
+
+          try:
+              data = base64.b64decode(value, validate=True)
+              if not data:
+                  raise ValueError("Decoded data is empty")
+              with open("extracted/farhang/farhang-release-key.jks", "wb") as f:
+                  f.write(data)
+              print("Base64 validation: passed")
+              print("Decoded file size:", len(data))
+          except Exception as e:
+              print("Base64 validation: failed")
+              print("Error type:", type(e).__name__)
+              sys.exit(1)
+          PY
 
       - name: Configure release signing
         working-directory: extracted/farhang
