@@ -64,8 +64,13 @@ jobs:
               sys.exit(1)
           PY
 
+
       - name: Configure release signing
         working-directory: extracted/farhang
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -88,7 +93,6 @@ jobs:
                       signingConfig = signingConfigs.getByName("release")
                   }
               }
-          }
           '''
 
           if s.count(needle) != 1:
